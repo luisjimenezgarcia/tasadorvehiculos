@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Tasación de vehículos gratis | Calcula el valor de tu coche, moto, camión o tractor | Tasador Pro</title>
+    <meta name="description" content="Calcula el valor de tu coche, moto, camión o tractor online y gratis. Tasación con datos actualizados del mercado español. Rápido, fácil y fiable.">
+    <meta name="author" content="Luis Jiménez García">
+    <meta name="keywords" content="tasacion coche, valorar mi coche, precio coche segunda mano, tasador coches gratis, cuanto vale mi coche, calcular valor coche, depreciacion coche, coche usado precio, tasacion moto, valorar mi moto, tasacion camion, tasacion tractor">
+    <meta name="robots" content="index, follow">
+    <meta name="copyright" content="Tasador Pro 2025">
+    <!-- ✅ CORREGIDO: canonical actualizado a tu nuevo dominio -->
+    <link rel="canonical" href="https://tasadorvehiculos.com">
+    
+    <!-- Schema.org para que Google entienda mejor la página -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Tasador Pro",
+      "description": "Calcula el valor de tu coche, moto, camión o tractor online y gratis",
+      "applicationCategory": "Finance",
+      "operatingSystem": "All",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Luis Jiménez García"
+      }
+    }
+    </script>
+    
+    <!-- Chart.js para el gráfico -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Librería para generar PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px;
+            position: relative;
+            background: #0a0a0f;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -2;
+            background: linear-gradient(rgba(0, 0, 0, 0.65), rgba(0, 0, 0, 0.8)), 
+                        url('https://images.pexels.com/photos/170811/pexels-photo-170811.jpeg?auto=compress&cs=tinysrgb&w=1600');
+            background-size: cover;
+            background-position: center 30%;
+            background-attachment: fixed;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 30%, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 100%);
+            z-index: -1;
+        }
+
+        .container {
+            background: rgba(15, 20, 30, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px;
+            border-radius: 48px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.05);
+            width: 100%;
+            max-width: 580px;
+            transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        .container:hover {
+            transform: translateY(-8px);
+        }
+
+        h1 {
+            font-size: 42px;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            text-align: center;
+            background: linear-gradient(135deg, #FFD166 0%, #FF6B6B 40%, #6C5CE7 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .subtitle {
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+            font-size: 12px;
+            margin-bottom: 35px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-weight: 400;
+            word-spacing: 6px;
+        }
+
+        .header-tasadores {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .card-tipo {
+            cursor: pointer;
+            padding: 15px 8px;
+            border-radius: 28px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.03);
+            text-align: center;
+            transition: all 0.3s ease;
+            opacity: 0.7;
+        }
+
+        .card-tipo.active {
+            border: 1px solid #FFD166;
+            background: rgba(255, 209, 102, 0.15);
+            opacity: 1;
+            transform: scale(1.03);
+            box-shadow: 0 0 20px rgba(255, 209, 102, 0.3);
+        }
+
+        .card-tipo:hover {
+            opacity: 1;
+            transform: translateY(-4px);
+            border-color: rgba(255, 209, 102, 0.6);
+            background: rgba(255,255,255,0.08);
+        }
+
+        .card-tipo span:first-child {
+            font-size: 34px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .card-tipo span:last-child {
+            font-size: 11px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.8);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #FFD166;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        select, input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            padding: 14px 18px;
+            border-radius: 24px;
+            margin-bottom: 22px;
+            box-sizing: border-box;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.25s ease;
+        }
+
+        select:focus, input:focus {
+            outline: none;
+            border-color: #FFD166;
+            background: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0 12px rgba(255, 209, 102, 0.4);
+        }
+
+        select option {
+            background: #1a1a2a;
+            color: white;
+        }
+
+        button {
+            width: 100%;
+            background: linear-gradient(95deg, #FFD166 0%, #FF6B6B 100%);
+            border: none;
+            color: #1a1a2a;
+            font-weight: 800;
+            padding: 16px;
+            border-radius: 40px;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-size: 14px;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+            box-shadow: 0 12px 25px rgba(255, 107, 107, 0.4);
+            letter-spacing: 2.5px;
+        }
+
+        .resultado-container {
+            max-width: 580px;
+            width: 100%;
+            margin-top: 35px;
+            background: white;
+            border-radius: 40px;
+            padding: 30px;
+            box-sizing: border-box;
+            animation: fadeInUp 0.6s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            box-shadow: 0 25px 45px rgba(0,0,0,0.3);
+            border: 1px solid rgba(0,0,0,0.1);
+            color: #1a1a2a;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .resultado-container h2 {
+            color: #FF6B6B;
+            margin-top: 0;
+            margin-bottom: 15px;
+            font-size: 26px;
+            border-left: 5px solid #FFD166;
+            padding-left: 18px;
+        }
+
+        .valor-final {
+            font-size: 54px;
+            font-weight: 900;
+            text-align: center;
+            margin: 25px 0;
+            background: linear-gradient(135deg, #FFD166, #FF6B6B);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -1px;
+        }
+
+        .ficha-tecnica {
+            background: #f8f9fc;
+            border-radius: 28px;
+            padding: 20px;
+            margin-top: 20px;
+            border: 1px solid #eef2f7;
+        }
+
+        .ficha-tecnica h3 {
+            color: #2c3e50;
+            font-size: 15px;
+            margin-bottom: 18px;
+            font-weight: 800;
+            border-left: 3px solid #FFD166;
+            padding-left: 12px;
+        }
+
+        .ficha-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        .ficha-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .ficha-label {
+            font-weight: 700;
+            color: #4a5568;
+            font-size: 12px;
+        }
+
+        .ficha-value {
+            color: #1a202c;
+            font-weight: 600;
+            font-size: 12px;
+            font-family: monospace;
+            background: #edf2f7;
+            padding: 4px 10px;
+            border-radius: 30px;
+        }
+
+        .badge-penalizacion {
+            background: #FF6B6B;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .section-title {
+            font-weight: 800;
+            color: #FFD166;
+            margin: 20px 0 12px 0;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(0,0,0,0.2);
+            border-radius: 50%;
+            border-top-color: #FF6B6B;
+            animation: spin 0.7s linear infinite;
+            margin-left: 12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .debug-info {
+            background: rgba(0,0,0,0.8);
+            color: #0f0;
+            font-size: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-family: monospace;
+            display: none;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .btn-share {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            border-radius: 40px;
+            font-weight: 800;
+            font-size: 13px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+            background: linear-gradient(95deg, #6C5CE7 0%, #FF6B6B 100%);
+            color: white;
+        }
+        
+        .btn-share:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+
+        /* Estilo específico para el botón PDF */
+        .btn-pdf {
+            background: linear-gradient(95deg, #555 0%, #333 100%);
+        }
+        
+        .btn-pdf:hover {
+            background: linear-gradient(95deg, #666 0%, #444 100%);
+        }
+
+        /* ============================================ */
+        /* BLOQUE SEO - ANCHO COMPLETO - VERSIÓN TRANSPARENTE */
+        /* ============================================ */
+        .seo-block-full {
+            width: 100%;
+            margin-top: 60px;
+            padding: 50px 20px;
+            background: rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(4px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .seo-block-full .seo-inner {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .seo-block-full h1 {
+            font-size: 28px;
+            letter-spacing: normal;
+            text-transform: none;
+            background: linear-gradient(135deg, #FFD166 0%, #FF6B6B 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .seo-block-full h2 {
+            color: #FFD166;
+            font-size: 22px;
+            margin: 30px 0 15px 0;
+        }
+        
+        .seo-block-full h3 {
+            color: #FFD166;
+            font-size: 18px;
+            margin: 25px 0 12px 0;
+        }
+        
+        .seo-block-full p {
+            font-size: 15px;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 15px;
+        }
+        
+        .seo-block-full strong {
+            color: #FFD166;
+        }
+        
+        .seo-block-full a {
+            color: #FFD166;
+            text-decoration: none;
+        }
+        
+        .seo-block-full a:hover {
+            text-decoration: underline;
+        }
+        
+        .faq-item-full {
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .faq-item-full strong {
+            color: #FFD166;
+            display: block;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            font-size: 10px;
+            color: rgba(255,255,255,0.4);
+            border-top: 1px solid rgba(255,255,255,0.1);
+            width: 100%;
+            max-width: 580px;
+        }
+        
+        .footer a {
+            color: #FFD166;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        /* Animación para la notificación */
+        @keyframes fadeOut {
+            0% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            70% { opacity: 1; transform: translateX(-50%) translateY(0); }
+            100% { opacity: 0; transform: translateX(-50%) translateY(20px); visibility: hidden; }
+        }
+
+        /* Animación para el sello */
+        @keyframes sealAppear {
+            0% { opacity: 0; transform: scale(0.5) rotate(-180deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+
+        .seal-container {
+            animation: sealAppear 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        /* Estilos para los modales */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            color: #333;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            border-radius: 30px;
+            padding: 25px;
+            overflow-y: auto;
+            position: relative;
+            animation: fadeInUp 0.3s ease;
+        }
+        
+        .modal-content h2 {
+            color: #FF6B6B;
+            margin-bottom: 20px;
+            border-left: 4px solid #FFD166;
+            padding-left: 15px;
+        }
+        
+        .modal-content h3 {
+            color: #1a1a2a;
+            font-size: 16px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .modal-content p {
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            color: #555;
+        }
+        
+        .modal-content .fecha {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 20px;
+        }
+        
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s;
+        }
+        
+        .close-modal:hover {
+            color: #FF6B6B;
+        }
+        
+        .badge-legal {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            font-size: 9px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            margin-left: 10px;
+        }
+
+        @media (max-width: 620px) {
+            body {
+                padding: 20px 15px;
+            }
+            .container {
+                padding: 28px;
+            }
+            h1 {
+                font-size: 32px;
+            }
+            .valor-final {
+                font-size: 40px;
+            }
+            .ficha-grid {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            .card-tipo span:first-child {
+                font-size: 26px;
+            }
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+            .seo-block-full {
+                padding: 30px 15px;
+            }
+            .seo-block-full h1 {
+                font-size: 22px;
+            }
+            .seo-block-full h2 {
+                font-size: 18px;
+            }
+            .seo-block-full h3 {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🏎️TASADOR PRO🏎️</h1>
+        <p class="subtitle">Valoración Inteligente | Alta Precisión</p>
+        
+        <form method="POST" id="tasadorForm">
+            <div class="header-tasadores">
+                <div class="card-tipo active" data-tipo="COCHES">
+                    <span>🏎️</span><span>Coches</span>
+                </div>
+                <div class="card-tipo" data-tipo="MOTOS">
+                    <span>🏍️</span><span>Motos</span>
+                </div>
+                <div class="card-tipo" data-tipo="CAMIONES">
+                    <span>🚛</span><span>Camiones</span>
+                </div>
+                <div class="card-tipo" data-tipo="TRACTORES">
+                    <span>🚜</span><span>Tractores</span>
+                </div>
+            </div>
+
+            <input type="hidden" name="tipo" id="tipo" value="COCHES">
+
+            <label>📌 MARCA</label>
+            <select name="marca" id="marca" required>
+                <option value="">Seleccione Marca...</option>
+            </select>
+
+            <label>🔧 MODELO</label>
+            <select name="modelo" id="modelo" required>
+                <option value="">Seleccione Modelo...</option>
+            </select>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
+                <div>
+                    <label>📅 AÑO</label>
+                    <input type="number" name="ano" id="ano" value="2020" min="1950" max="2026" required>
+                </div>
+                <div>
+                    <label for="km" id="kmLabel">📊 KILÓMETROS</label>
+                    <input type="number" name="km" id="km" value="50000" min="0" required>
+                </div>
+            </div>
+
+            <button type="submit" id="submitBtn">🔍 CALCULAR TASACIÓN</button>
+        </form>
+        
+        <div id="debugMsg" class="debug-info"></div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- RESULTADO DE TASACIÓN (aparece SOLO después de calcular) -->
+    <!-- ============================================ -->
+    {% if resultado %}
+    <div class="resultado-container" id="resultadoContainer">
+        <h2>📄 Certificado de Valoración</h2>
+        <p style="font-size: 13px; color: #2d3748;">{{ resultado }}</p>
+        
+        <!-- Sello de certificación -->
+        <div class="seal-container" style="text-align: center; margin: 15px 0;">
+            <div style="position: relative; display: inline-block;">
+                <svg width="130" height="130" viewBox="0 0 130 130" style="display: block;">
+                    <circle cx="65" cy="65" r="60" fill="#1a1a2a" stroke="#333" stroke-width="2"/>
+                    <circle cx="65" cy="65" r="55" fill="none" stroke="#444" stroke-width="1.5" stroke-dasharray="3 3"/>
+                    <circle cx="65" cy="65" r="50" fill="none" stroke="#555" stroke-width="1"/>
+                    <circle cx="65" cy="65" r="45" fill="rgba(0,0,0,0.3)" stroke="#666" stroke-width="0.5"/>
+                    
+                    <path id="topTextSeal" d="M 20,65 A 45,45 0 0,1 110,65" fill="none"/>
+                    <text font-size="7" fill="#ddd" font-weight="bold" letter-spacing="2">
+                        <textPath href="#topTextSeal" startOffset="50%" text-anchor="middle">CERTIFICADO DE TASACIÓN</textPath>
+                    </text>
+                    
+                    <path id="bottomTextSeal" d="M 110,65 A 45,45 0 0,1 20,65" fill="none"/>
+                    <text font-size="6" fill="#888">
+                        <textPath href="#bottomTextSeal" startOffset="50%" text-anchor="middle">DOCUMENTO OFICIAL</textPath>
+                    </text>
+                    
+                    <text x="65" y="58" text-anchor="middle" font-size="28" fill="#FFD166" font-weight="bold">✓</text>
+                    <text x="65" y="72" text-anchor="middle" font-size="7" fill="#ccc" font-weight="bold" letter-spacing="1">LUIS JIMÉNEZ G.</text>
+                    <text x="65" y="82" text-anchor="middle" font-size="6" fill="#888">TASADOR OFICIAL</text>
+                    <text x="65" y="90" text-anchor="middle" font-size="5" fill="#666">Nº CERT. 2025-001</text>
+                    
+                    <circle cx="32" cy="32" r="2" fill="#555"/>
+                    <circle cx="98" cy="32" r="2" fill="#555"/>
+                    <circle cx="32" cy="98" r="2" fill="#555"/>
+                    <circle cx="98" cy="98" r="2" fill="#555"/>
+                </svg>
+            </div>
+        </div>
+        
+        <div class="valor-final">
+            {{ valor_final }} €
+        </div>
+        
+        <div class="action-buttons">
+            <button id="btnCompartir" class="btn-share">📤 COMPARTIR RESULTADO</button>
+            <button id="btnDescargarPDF" class="btn-share btn-pdf">📄 DESCARGAR INFORME PDF</button>
+        </div>
+        
+        <!-- Gráfico de depreciación -->
+        <canvas id="graficoDepreciacion" style="max-height: 200px; margin-top: 20px; width: 100%;"></canvas>
+        
+        {% if ficha %}
+        <div class="ficha-tecnica">
+            <h3>⚙️ ESPECIFICACIONES TÉCNICAS</h3>
+            
+            <div class="section-title">📋 DATOS DE FÁBRICA</div>
+            <div class="ficha-grid">
+                <div class="ficha-item"><span class="ficha-label">💰 Precio original:</span><span class="ficha-value">{{ ficha.precio_orig }} €</span></div>
+                
+                {% if ficha.puertas %}
+                <div class="ficha-item"><span class="ficha-label">🚪 Puertas:</span><span class="ficha-value">{{ ficha.puertas }}</span></div>
+                {% endif %}
+                {% if ficha.asientos %}
+                <div class="ficha-item"><span class="ficha-label">💺 Asientos:</span><span class="ficha-value">{{ ficha.asientos }}</span></div>
+                {% endif %}
+                
+                <div class="ficha-item"><span class="ficha-label">⛽ Consumo:</span><span class="ficha-value">{{ ficha.consumo }} L/100km</span></div>
+                <div class="ficha-item"><span class="ficha-label">🔧 Motor:</span><span class="ficha-value">{{ ficha.motor }}</span></div>
+                <div class="ficha-item"><span class="ficha-label">🏷️ Etiqueta:</span><span class="ficha-value">{{ ficha.etiqueta }}</span></div>
+                <div class="ficha-item"><span class="ficha-label">⚡ Tracción:</span><span class="ficha-value">{{ ficha.traccion }}</span></div>
+                <div class="ficha-item"><span class="ficha-label">🚗 Tipo:</span><span class="ficha-value">{{ ficha.tipo }}</span></div>
+                
+                {% if ficha.aceleracion %}
+                <div class="ficha-item"><span class="ficha-label">🏁 Aceleración (0-100):</span><span class="ficha-value">{{ ficha.aceleracion }}</span></div>
+                {% elif ficha.prestacion and v_tipo == "COCHES" %}
+                <div class="ficha-item"><span class="ficha-label">🏁 Aceleración (0-100):</span><span class="ficha-value">{{ ficha.prestacion }}</span></div>
+                {% endif %}
+                
+                {% if ficha.cilindrada %}
+                <div class="ficha-item"><span class="ficha-label">⚙️ Cilindrada:</span><span class="ficha-value">{{ ficha.cilindrada }}</span></div>
+                {% endif %}
+                
+                {% if ficha.potencia %}
+                <div class="ficha-item"><span class="ficha-label">💪 Potencia:</span><span class="ficha-value">{{ ficha.potencia }}</span></div>
+                {% elif ficha.cv %}
+                <div class="ficha-item"><span class="ficha-label">💪 Potencia:</span><span class="ficha-value">{{ ficha.cv }} CV</span></div>
+                {% endif %}
+                
+                {% if ficha.carga_util and ficha.carga_util != "N/A" %}
+                <div class="ficha-item"><span class="ficha-label">📦 Carga útil:</span><span class="ficha-value">{{ ficha.carga_util }} kg</span></div>
+                {% endif %}
+            </div>
+            
+            <div class="section-title">📊 VALORACIÓN DE MERCADO</div>
+            <div class="ficha-grid">
+                <div class="ficha-item"><span class="ficha-label">📅 Antigüedad:</span><span class="ficha-value">{{ ficha.antiguedad }} años</span></div>
+                
+                {% if ficha.unidad_esperada %}
+                <div class="ficha-item"><span class="ficha-label">📊 Esperado:</span><span class="ficha-value">{{ ficha.unidad_esperada }}</span></div>
+                {% endif %}
+                
+                {% if ficha.unidad_real %}
+                <div class="ficha-item"><span class="ficha-label">📊 Real:</span><span class="ficha-value">{{ ficha.unidad_real }}</span></div>
+                {% endif %}
+                
+                {% if ficha.diferencia %}
+                <div class="ficha-item"><span class="ficha-label">📉 Diferencia:</span><span class="ficha-value">{{ ficha.diferencia }}</span></div>
+                {% endif %}
+                
+                <div class="ficha-item"><span class="ficha-label">📉 Depreciación:</span><span class="ficha-value">{{ ficha.factor_antiguedad }}</span></div>
+                <div class="ficha-item"><span class="ficha-label">⚖️ Ajuste por uso:</span><span class="ficha-value">{{ ficha.ajuste }}</span></div>
+                
+                {% if ficha.penalizacion_extra and ficha.penalizacion_extra != "Sin penalización" %}
+                <div class="ficha-item"><span class="ficha-label">⚠️ Penalización:</span><span class="ficha-value"><span class="badge-penalizacion">{{ ficha.penalizacion_extra }}</span></span></div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Pie de página del certificado -->
+        <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 8px; color: #999;">
+            <p>Documento generado electrónicamente mediante Tasador Pro</p>
+            <p>Este certificado tiene validez orientativa. Los valores son estimaciones basadas en datos de mercado.</p>
+            <p>Fecha de emisión: <span id="fechaActual"></span></p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ============================================ -->
+    <!-- BLOQUE SEO OPTIMIZADO PARA POSICIONAMIENTO -->
+    <!-- ============================================ -->
+    <div class="seo-block-full">
+        <div class="seo-inner">
+            
+            <h1>💰 Tasación de vehículos | Calcula el valor de tu vehículo gratis</h1>
+            
+            <p>¿Quieres saber <strong>cuánto vale tu coche usado</strong>? Nuestro <strong>tasador de coches online gratis</strong> te ofrece una valoración inmediata y actualizada al mercado español. Tanto si quieres vender tu coche, comprar uno de segunda mano o simplemente conocer su <strong>valor de mercado</strong>, esta herramienta es para ti.</p>
+            
+            <h2>📊 ¿Cómo saber el valor de mi coche?</h2>
+            <p>Para <strong>calcular el valor de tu coche</strong> solo necesitas introducir la marca, modelo, año y kilómetros. Nuestro algoritmo analiza la <strong>depreciación del vehículo</strong> según su antigüedad y uso, además de la oferta y demanda actual en el <strong>mercado de coches de segunda mano en España</strong>. El resultado es una estimación precisa y fiable.</p>
+            
+            <h2>🚗 Precio coches segunda mano por marca y modelo</h2>
+            <p>El <strong>precio de un coche usado</strong> varía mucho según la marca. Modelos de <strong>Seat, Volkswagen, Renault, Peugeot, BMW, Mercedes, Audi, Toyota, Ford, Citroën, Opel, Hyundai, Kia, Nissan, Fiat</strong> y todas las marcas del mercado español tienen diferentes curvas de depreciación. Nuestra base de datos incluye cientos de modelos actualizados.</p>
+            
+            <h2>📉 Tabla de depreciación de coches por años</h2>
+            <p>Un coche nuevo pierde aproximadamente un <strong>20% de su valor al salir del concesionario</strong>, un <strong>15% el segundo año</strong> y sobre un <strong>10% anual los siguientes años</strong>. A los 5 años, un coche puede haber perdido hasta el <strong>60% de su valor original</strong>. Nuestro tasador aplica estas fórmulas de depreciación para darte el precio más realista.</p>
+            
+            <h2>🔍 Tasador de coches gratis | Sin registro ni datos personales</h2>
+            <p>A diferencia de otras páginas, <strong>no pedimos tu email ni teléfono</strong>. La tasación es completamente <strong>gratuita, anónima y sin compromiso</strong>. Solo introduce los datos de tu vehículo y obtén al instante su <strong>valor de mercado actualizado</strong>.</p>
+            
+            <h2>🏍️ Tasación de motos, camiones y tractores</h2>
+            <p>Nuestra herramienta permite <strong>tasar coches</strong>,<strong> motos</strong>, <strong>camiones industriales</strong> y <strong>tractores agrícolas</strong>. Cada tipo de vehículo tiene su propia fórmula de depreciación y factores específicos (kilómetros, horas de trabajo, carga útil, etc.).</p>
+            
+            <h2>❓ Preguntas frecuentes sobre tasación de coches</h2>
+            
+            <div class="faq-item-full">
+                <strong>¿Cuánto vale mi coche con 10 años y 150.000 km?</strong>
+                <p>Un coche de 10 años con 150.000 km suele haber perdido entre el 70% y 85% de su valor original, dependiendo de la marca, el mantenimiento y la demanda del modelo. Por ejemplo, un coche que costó 20.000€ nuevo podría valer entre 3.000€ y 6.000€.</p>
+            </div>
+            
+            <div class="faq-item-full">
+                <strong>¿Cómo afecta la etiqueta ambiental al precio?</strong>
+                <p>Los coches con <strong>etiqueta ECO o CERO</strong> (híbridos y eléctricos) mantienen mejor su valor que los diésel e gasolina antiguos. La etiqueta B y C están perdiendo valor por las restricciones de circulación en ciudades como Madrid y Barcelona.</p>
+            </div>
+            
+            <div class="faq-item-full">
+                <strong>¿Puedo tasar un coche siniestrado o con daños?</strong>
+                <p>Nuestra tasación es para vehículos en estado normal. Si tu coche tiene daños importantes, su valor puede ser entre un 20% y un 50% menor. En ese caso, te recomendamos consultar con un profesional.</p>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- Footer profesional -->
+    <div class="footer">
+        <p>© 2025 Tasador Pro - Valoración inteligente de vehículos | Creado por Luis Jiménez García</p>
+        <p>Los valores son estimaciones basadas en datos de mercado | <a id="linkAviso">Aviso legal</a> | <a id="linkPrivacidad">Privacidad</a></p>
+    </div>
+
+    <!-- Modal Aviso Legal -->
+    <div id="modalAviso" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeAviso">&times;</span>
+            <h2>📋 Aviso Legal</h2>
+            <div class="fecha">Última actualización: Abril 2025</div>
+            
+            <h3>1. Identificación del titular</h3>
+            <p><strong>Tasador Pro</strong><br> Creado por: Luis Jiménez García<br> Actividad: Valoración inteligente de vehículos</p>
+            
+            <h3>2. Limitación de responsabilidad</h3>
+            <p>Las valoraciones ofrecidas por Tasador Pro son <strong>estimaciones orientativas</strong> basadas en datos de mercado y algoritmos de depreciación. No constituyen una tasación oficial ni vinculante. Los resultados pueden variar según el estado real del vehículo, ubicación geográfica y condiciones del mercado.</p>
+            
+            <h3>3. Exactitud de la información</h3>
+            <p>Los precios y características de los vehículos provienen de bases de datos actualizadas periódicamente. Sin embargo, pueden existir errores, omisiones o desactualizaciones. Se recomienda contrastar la información con fuentes oficiales.</p>
+            
+            <h3>4. Propiedad intelectual</h3>
+            <p>Todos los contenidos de esta web (diseño, logotipo, textos, algoritmos) son propiedad de Tasador Pro. Queda prohibida su reproducción sin autorización expresa.</p>
+            
+            <h3>5. Enlaces externos</h3>
+            <p>Esta web puede contener enlaces a sitios externos. No nos hacemos responsables del contenido o políticas de privacidad de dichos sitios.</p>
+            
+            <h3>6. Legislación aplicable</h3>
+            <p>Este aviso legal se rige por la legislación española.</p>
+        </div>
+    </div>
+
+    <!-- Modal Política de Privacidad -->
+    <div id="modalPrivacidad" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closePrivacidad">&times;</span>
+            <h2>🔒 Política de Privacidad</h2>
+            <div class="fecha">Última actualización: Abril 2025</div>
+            
+            <h3>1. Información que recopilamos</h3>
+            <p><strong>Tasador Pro NO recopila ningún dato personal.</strong> No guardamos tu nombre, email, dirección IP, ni historial de búsquedas. Toda la información que introduces (marca, modelo, año, kilómetros) se procesa exclusivamente para calcular la tasación y <strong>no se almacena</strong> en nuestros servidores.</p>
+            
+            <h3>2. Uso de la información</h3>
+            <p>Los datos que introduces solo se utilizan para: calcular la valoración del vehículo, mostrar el resultado en pantalla y compartir el resultado si tú lo solicitas (a través de tu navegador).</p>
+            
+            <h3>3. Cookies <span class="badge-legal">Solo técnicas</span></h3>
+            <p>Esta web utiliza <strong>únicamente cookies técnicas</strong> necesarias para el funcionamiento básico. No utilizamos cookies de seguimiento, análisis ni publicitarias. No compartimos información con terceros.</p>
+            
+            <h3>4. Datos de terceros</h3>
+            <p>No compartimos ningún dato con terceros. Las tasaciones se realizan localmente en tu navegador.</p>
+            
+            <h3>5. Tus derechos</h3>
+            <p>Dado que no almacenamos ningún dato personal, no es necesario ejercitar derechos de acceso, rectificación o supresión. Si tienes cualquier duda, puedes contactarnos a través de nuestra web.</p>
+            
+            <h3>6. Menores de edad</h3>
+            <p>Esta web no está dirigida a menores de 14 años. No recopilamos información de menores intencionadamente.</p>
+            
+            <h3>7. Cambios en esta política</h3>
+            <p>Cualquier cambio en esta política se publicará en esta página con la fecha de actualización correspondiente.</p>
+            
+            <div style="background: #f0f0f0; padding: 12px; border-radius: 15px; margin-top: 15px;">
+                <p style="margin: 0; font-size: 11px; text-align: center;">✅ Tasador Pro cumple con el RGPD (Reglamento General de Protección de Datos de la UE)</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Modal de Aviso Legal
+        const modalAviso = document.getElementById('modalAviso');
+        const linkAviso = document.getElementById('linkAviso');
+        const closeAviso = document.getElementById('closeAviso');
+        
+        linkAviso.onclick = function() {
+            modalAviso.style.display = 'flex';
+        }
+        
+        closeAviso.onclick = function() {
+            modalAviso.style.display = 'none';
+        }
+        
+        // Modal de Política de Privacidad
+        const modalPrivacidad = document.getElementById('modalPrivacidad');
+        const linkPrivacidad = document.getElementById('linkPrivacidad');
+        const closePrivacidad = document.getElementById('closePrivacidad');
+        
+        linkPrivacidad.onclick = function() {
+            modalPrivacidad.style.display = 'flex';
+        }
+        
+        closePrivacidad.onclick = function() {
+            modalPrivacidad.style.display = 'none';
+        }
+        
+        // Cerrar modal al hacer clic fuera del contenido
+        window.onclick = function(event) {
+            if (event.target == modalAviso) {
+                modalAviso.style.display = 'none';
+            }
+            if (event.target == modalPrivacidad) {
+                modalPrivacidad.style.display = 'none';
+            }
+        }
+
+        // Fecha actual
+        const fecha = new Date();
+        const fechaActual = document.getElementById('fechaActual');
+        if (fechaActual) {
+            fechaActual.textContent = fecha.toLocaleDateString('es-ES', {
+                day: '2-digit', month: '2-digit', year: 'numeric'
+            });
+        }
+        
+        // Recibir SOLO las marcas desde Flask
+        const marcasPorTipo = {{ marcas_por_tipo | tojson | safe }};
+        
+        console.log("=== DATOS RECIBIDOS ===");
+        console.log("Marcas por tipo:", marcasPorTipo);
+        
+        const tipoInput = document.getElementById('tipo');
+        const marcaSelect = document.getElementById('marca');
+        const modeloSelect = document.getElementById('modelo');
+        const cards = document.querySelectorAll('.card-tipo');
+        const kmLabel = document.getElementById('kmLabel');
+        const kmInput = document.getElementById('km');
+        const submitBtn = document.getElementById('submitBtn');
+
+        function selectCategory(categoria) {
+            tipoInput.value = categoria;
+            cards.forEach(card => {
+                card.classList.toggle('active', card.getAttribute('data-tipo') === categoria);
+            });
+            updateUnitLabel(categoria);
+            updateBrands();
+        }
+
+        function updateUnitLabel(categoria) {
+            if (categoria === 'TRACTORES') {
+                kmLabel.textContent = '⏱️ HORAS DE TRABAJO';
+                kmInput.placeholder = 'Introduzca las horas de uso';
+                kmInput.value = 5000;
+            } else if (categoria === 'CAMIONES') {
+                kmLabel.textContent = '📊 KILÓMETROS';
+                kmInput.placeholder = 'Introduzca los kilómetros';
+                kmInput.value = 200000;
+            } else {
+                kmLabel.textContent = '📊 KILÓMETROS';
+                kmInput.placeholder = 'Introduzca los kilómetros';
+                kmInput.value = 50000;
+            }
+        }
+
+        function updateBrands() {
+            const tipo = tipoInput.value;
+            marcaSelect.innerHTML = '<option value="">Seleccione Marca...</option>';
+            modeloSelect.innerHTML = '<option value="">Seleccione Modelo...</option>';
+            
+            console.log("Actualizando marcas para tipo:", tipo);
+            
+            if (marcasPorTipo && marcasPorTipo[tipo]) {
+                const marcas = marcasPorTipo[tipo].sort();
+                console.log("Marcas encontradas:", marcas.length);
+                marcas.forEach(marca => {
+                    const option = document.createElement('option');
+                    option.value = marca;
+                    option.textContent = marca;
+                    marcaSelect.appendChild(option);
+                });
+            } else {
+                console.error("No hay marcas para:", tipo);
+                const option = document.createElement('option');
+                option.value = "";
+                option.textContent = "Error: No hay datos para " + tipo;
+                marcaSelect.appendChild(option);
+            }
+        }
+
+        function updateModels() {
+            const tipo = tipoInput.value;
+            const marca = marcaSelect.value;
+            
+            if (!marca) {
+                modeloSelect.innerHTML = '<option value="">Seleccione Modelo...</option>';
+                return;
+            }
+            
+            modeloSelect.innerHTML = '<option value="">Cargando modelos...</option>';
+            
+            fetch('/get_models', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ tipo: tipo, marca: marca })
+            })
+            .then(response => response.json())
+            .then(modelos => {
+                modeloSelect.innerHTML = '<option value="">Seleccione Modelo...</option>';
+                modelos.forEach(modelo => {
+                    const option = document.createElement('option');
+                    option.value = modelo;
+                    option.textContent = modelo;
+                    modeloSelect.appendChild(option);
+                });
+            })
+            .catch(error => {
+                console.error("Error al cargar modelos:", error);
+                modeloSelect.innerHTML = '<option value="">Error al cargar modelos</option>';
+            });
+        }
+
+        // Botón de compartir
+        const btnCompartir = document.getElementById('btnCompartir');
+        if (btnCompartir) {
+            btnCompartir.addEventListener('click', function() {
+                const vehiculo = "{{ v_marca }} {{ v_modelo }}";
+                const anio = "{{ v_ano }}";
+                const km = "{{ v_km }}";
+                const valor = "{{ valor_final }} €";
+                const tipo = "{{ v_tipo }}";
+                
+                let mensaje = `🏁 *TASACIÓN PRO* 🏎️\n\n`;
+                mensaje += `📌 *Vehículo:* ${vehiculo}\n`;
+                mensaje += `📅 *Año:* ${anio}\n`;
+                if (tipo === "TRACTORES") {
+                    mensaje += `⏱️ *Horas:* ${km} h\n`;
+                } else {
+                    mensaje += `📊 *Kilómetros:* ${km} km\n`;
+                }
+                mensaje += `💰 *Valor de mercado:* ${valor}\n\n`;
+                mensaje += `🔍 Tasación realizada con Tasador Pro\n`;
+                mensaje += `✓ Certificado oficial por Luis Jiménez García\n`;
+                mensaje += `📅 ${new Date().toLocaleDateString('es-ES')}`;
+                
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'Tasación Pro',
+                        text: mensaje,
+                        url: window.location.href
+                    }).catch(error => {
+                        console.log('Error al compartir:', error);
+                        copiarAlPortapapeles(mensaje);
+                    });
+                } else {
+                    copiarAlPortapapeles(mensaje);
+                }
+            });
+        }
+
+        // Función para copiar al portapapeles
+        function copiarAlPortapapeles(texto) {
+            const textarea = document.createElement('textarea');
+            textarea.value = texto;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            mostrarNotificacion('✅ Resultado copiado al portapapeles');
+        }
+
+        // Función para mostrar notificación
+        function mostrarNotificacion(mensaje) {
+            const notificacion = document.createElement('div');
+            notificacion.textContent = mensaje;
+            notificacion.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #2d3748;
+                color: white;
+                padding: 12px 24px;
+                border-radius: 40px;
+                font-size: 14px;
+                z-index: 9999;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+                animation: fadeOut 2s ease-in-out forwards;
+            `;
+            document.body.appendChild(notificacion);
+            setTimeout(() => notificacion.remove(), 2000);
+        }
+
+        // ============================================
+        // BOTÓN PARA DESCARGAR PDF EN BLANCO Y NEGRO
+        // ============================================
+        const btnPDF = document.getElementById('btnDescargarPDF');
+        if (btnPDF) {
+            btnPDF.addEventListener('click', function() {
+                const { jsPDF } = window.jspdf;
+                
+                // Obtener los datos desde las variables de Flask
+                const vehiculo = "{{ v_marca }} {{ v_modelo }}";
+                const anio = "{{ v_ano }}";
+                const km = "{{ v_km }}";
+                const tipo = "{{ v_tipo }}";
+                const valor = "{{ valor_final }}";
+                const resultado = "{{ resultado }}";
+                
+                // Crear PDF en formato A4
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                let y = 20;
+                
+                // CABECERA
+                pdf.setFontSize(18);
+                pdf.setFont(undefined, 'bold');
+                pdf.text("TASADOR PRO", 105, y, { align: 'center' });
+                y += 10;
+                
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, 'normal');
+                pdf.text("INFORME DE TASACIÓN DE VEHÍCULO", 105, y, { align: 'center' });
+                y += 8;
+                
+                pdf.setFontSize(8);
+                pdf.text("Documento generado electrónicamente", 105, y, { align: 'center' });
+                y += 12;
+                
+                pdf.line(20, y, 190, y);
+                y += 10;
+                
+                // DATOS DEL VEHÍCULO
+                pdf.setFontSize(12);
+                pdf.setFont(undefined, 'bold');
+                pdf.text("DATOS DEL VEHÍCULO", 20, y);
+                y += 8;
+                
+                pdf.setFontSize(10);
+                pdf.setFont(undefined, 'normal');
+                
+                pdf.text("Vehículo:", 20, y);
+                pdf.text(vehiculo, 70, y);
+                y += 7;
+                
+                pdf.text("Año de matriculación:", 20, y);
+                pdf.text(anio, 70, y);
+                y += 7;
+                
+                if (tipo === "TRACTORES") {
+                    pdf.text("Horas de trabajo:", 20, y);
+                    pdf.text(km + " h", 70, y);
+                } else {
+                    pdf.text("Kilómetros recorridos:", 20, y);
+                    pdf.text(km + " km", 70, y);
+                }
+                y += 7;
+                
+                pdf.text("Tipo de vehículo:", 20, y);
+                let tipoTexto = "";
+                if (tipo === "COCHES") tipoTexto = "Turismo / Coche particular";
+                else if (tipo === "MOTOS") tipoTexto = "Motocicleta";
+                else if (tipo === "CAMIONES") tipoTexto = "Camión industrial";
+                else if (tipo === "TRACTORES") tipoTexto = "Tractor agrícola";
+                pdf.text(tipoTexto, 70, y);
+                y += 12;
+                
+                // VALORACIÓN
+                pdf.line(20, y, 190, y);
+                y += 8;
+                
+                pdf.setFontSize(12);
+                pdf.setFont(undefined, 'bold');
+                pdf.text("VALORACIÓN DE MERCADO", 20, y);
+                y += 10;
+                
+                pdf.setFontSize(14);
+                pdf.setFont(undefined, 'bold');
+                pdf.text("Valor estimado:", 20, y);
+                pdf.text(valor + " €", 80, y);
+                y += 10;
+                
+                pdf.setFontSize(9);
+                pdf.setFont(undefined, 'normal');
+                const resultadoLines = pdf.splitTextToSize(resultado, 170);
+                pdf.text(resultadoLines, 20, y);
+                y += (resultadoLines.length * 6) + 10;
+                
+                // DATOS TÉCNICOS
+                {% if ficha %}
+                pdf.line(20, y, 190, y);
+                y += 8;
+                
+                pdf.setFontSize(12);
+                pdf.setFont(undefined, 'bold');
+                pdf.text("FICHA TÉCNICA", 20, y);
+                y += 8;
+                
+                pdf.setFontSize(9);
+                pdf.setFont(undefined, 'normal');
+                
+                pdf.text("Precio original:", 20, y);
+                pdf.text("{{ ficha.precio_orig }} €", 70, y);
+                y += 6;
+                
+                pdf.text("Motor:", 20, y);
+                pdf.text("{{ ficha.motor }}", 70, y);
+                y += 6;
+                
+                pdf.text("Consumo:", 20, y);
+                pdf.text("{{ ficha.consumo }} L/100km", 70, y);
+                y += 6;
+                
+                pdf.text("Etiqueta ambiental:", 20, y);
+                pdf.text("{{ ficha.etiqueta }}", 70, y);
+                y += 6;
+                
+                pdf.text("Tracción:", 20, y);
+                pdf.text("{{ ficha.traccion }}", 70, y);
+                y += 6;
+                
+                pdf.text("Antigüedad:", 20, y);
+                pdf.text("{{ ficha.antiguedad }} años", 70, y);
+                y += 6;
+                
+                pdf.text("Depreciación aplicada:", 20, y);
+                pdf.text("{{ ficha.factor_antiguedad }}", 70, y);
+                y += 6;
+                
+                pdf.text("Ajuste por uso:", 20, y);
+                pdf.text("{{ ficha.ajuste }}", 70, y);
+                y += 6;
+                
+                {% if ficha.penalizacion_extra and ficha.penalizacion_extra != "Sin penalización" %}
+                pdf.text("Penalización:", 20, y);
+                pdf.text("{{ ficha.penalizacion_extra }}", 70, y);
+                y += 6;
+                {% endif %}
+                
+                y += 8;
+                {% endif %}
+                
+                // PIE DE PÁGINA Y FIRMA
+                pdf.line(20, y, 190, y);
+                y += 8;
+                
+                pdf.setFontSize(8);
+                pdf.setFont(undefined, 'italic');
+                pdf.text("Este documento es una estimación orientativa basada en datos de mercado.", 105, y, { align: 'center' });
+                y += 5;
+                pdf.text("El precio final puede variar según el estado específico del vehículo y la negociación.", 105, y, { align: 'center' });
+                y += 10;
+                
+                pdf.line(130, y, 190, y);
+                y += 3;
+                pdf.setFontSize(7);
+                pdf.text("Documento generado por:", 160, y);
+                y += 6;
+                
+                pdf.setFontSize(9);
+                pdf.setFont(undefined, 'bold');
+                pdf.text("Tasador Pro", 160, y);
+                y += 5;
+                
+                pdf.setFontSize(6);
+                pdf.setFont(undefined, 'normal');
+                pdf.text("Creado por Luis Jiménez García", 160, y);
+                y += 8;
+                
+                const fechaPDF = new Date().toLocaleDateString('es-ES');
+                pdf.setFontSize(7);
+                pdf.text("Fecha de emisión: " + fechaPDF, 105, y, { align: 'center' });
+                
+                const nombreVehiculo = vehiculo.replace(/ /g, '_').replace(/[^\w\-]/g, '');
+                pdf.save('Informe_Tasacion_' + nombreVehiculo + '_' + fechaPDF + '.pdf');
+                
+                mostrarNotificacion('✅ Informe PDF descargado');
+            });
+        }
+
+        // Gráfico de depreciación
+        let graficoInstance = null;
+        function initGrafico() {
+            const canvas = document.getElementById('graficoDepreciacion');
+            if (canvas && typeof Chart !== 'undefined' && "{{ ficha.precio_orig }}") {
+                if (graficoInstance) {
+                    graficoInstance.destroy();
+                }
+                
+                const precioOriginal = parseFloat("{{ ficha.precio_orig }}".replace(/\./g, ''));
+                const años = [];
+                const valores = [];
+                
+                for (let i = 0; i <= 10; i++) {
+                    años.push(i);
+                    let factor;
+                    if (i == 0) factor = 1.0;
+                    else if (i == 1) factor = 0.78;
+                    else if (i == 2) factor = 0.78 * 0.90;
+                    else if (i == 3) factor = 0.78 * 0.90 * 0.90;
+                    else if (i <= 10) factor = 0.78 * (0.90 ** 2) * (0.94 ** (i - 3));
+                    else factor = 0.78 * (0.90 ** 2) * (0.94 ** 7) * (0.96 ** (i - 10));
+                    valores.push((precioOriginal * factor).toFixed(0));
+                }
+                
+                graficoInstance = new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: años,
+                        datasets: [{
+                            label: 'Valor de mercado (€)',
+                            data: valores,
+                            borderColor: '#FF6B6B',
+                            backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#FFD166',
+                            pointBorderColor: '#fff',
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: { position: 'top', labels: { font: { size: 10 } } },
+                            tooltip: { callbacks: { label: (ctx) => `${parseInt(ctx.raw).toLocaleString()} €` } }
+                        },
+                        scales: { 
+                            y: { 
+                                beginAtZero: false, 
+                                ticks: { callback: (v) => v.toLocaleString() + ' €' } 
+                            },
+                            x: { title: { display: true, text: 'Años', font: { size: 10 } } }
+                        }
+                    }
+                });
+            }
+        }
+
+        submitBtn.addEventListener('click', () => {
+            submitBtn.innerHTML = '🔍 CALCULANDO <span class="loading"></span>';
+            setTimeout(() => submitBtn.innerHTML = '🔍 CALCULAR TASACIÓN', 2000);
+        });
+
+        cards.forEach(card => card.addEventListener('click', () => selectCategory(card.getAttribute('data-tipo'))));
+        marcaSelect.addEventListener('change', updateModels);
+        
+        window.onload = () => { 
+            console.log("=== PÁGINA CARGADA ===");
+            updateBrands(); 
+            updateUnitLabel('COCHES');
+            setTimeout(initGrafico, 500);
+        };
+    </script>
+</body>
+</html>
