@@ -5,7 +5,7 @@ import sys
 import os
 
 # Añadir la raíz del proyecto al path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
 # Importar tu aplicación original
 from app import app as application
